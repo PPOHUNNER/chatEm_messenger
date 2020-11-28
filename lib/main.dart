@@ -1,3 +1,4 @@
+import 'package:chatEm/screens/chatScreen.dart';
 import 'package:chatEm/screens/errorScreen.dart';
 import 'package:chatEm/screens/usersScreen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,7 +24,8 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/usersScreen': (context) => UserScreen(),
-        '/authScreen':(context)=>AuthScreen()
+        '/authScreen':(context)=>AuthScreen(),
+        '/chatScreen':(context)=>ChatScreen()
         },
       home: FutureBuilder(
         future: _initialization,
