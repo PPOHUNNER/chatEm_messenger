@@ -25,9 +25,12 @@ class _AuthFormState extends State<AuthForm> {
   FirebaseStorage storage = FirebaseStorage.instance;
   @override
   Widget build(BuildContext context) {
+    print(MediaQuery.of(context).size.width / 2.62);
     final deviceSize = MediaQuery.of(context).size;
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(bottomRight: Radius.circular(80),bottomLeft: Radius.circular(20),topRight: Radius.circular(20),topLeft: Radius.circular(80))),
       padding: EdgeInsets.symmetric(
           horizontal: deviceSize.width * 0.08,
           vertical: deviceSize.width * 0.04),
@@ -35,20 +38,26 @@ class _AuthFormState extends State<AuthForm> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundImage:
-                  _pickedImage == null ? null : FileImage(_pickedImage),
-            ),
-            SizedBox(
-              height: deviceSize.width * 0.07,
-            ),
-            FlatButton(
-                onPressed: pickImage, child: Text("Select profile picture")),
-            TextField(
-              key: ValueKey("email"),
-              decoration: InputDecoration(labelText: "Email"),
-              controller: _emailController,
+            if (!widget.accountExists)
+              CircleAvatar(
+                radius: 50,
+                backgroundImage:
+                    _pickedImage == null ? null : FileImage(_pickedImage),
+              ),
+            if (!widget.accountExists)
+              SizedBox(
+                height: deviceSize.width * 0.07,
+              ),
+            if (!widget.accountExists)
+              FlatButton(
+                  onPressed: pickImage, child: Text("Select profile picture")),
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: TextField(
+                key: ValueKey("email"),
+                decoration: InputDecoration(labelText: "Email"),
+                controller: _emailController,
+              ),
             ),
             SizedBox(
               height: deviceSize.width * 0.07,
@@ -150,16 +159,20 @@ class _AuthFormState extends State<AuthForm> {
           });
           await authInstance.createUserWithEmailAndPassword(
               email: userData['email'], password: userData['password']);
-          await storage.ref('user_profiles/${authInstance.currentUser.uid}.jpg').putFile(_pickedImage);
-            String downloadURL = await FirebaseStorage.instance.ref('user_profiles/${authInstance.currentUser.uid}.jpg').getDownloadURL();
+          await storage
+              .ref('user_profiles/${authInstance.currentUser.uid}.jpg')
+              .putFile(_pickedImage);
+          String downloadURL = await FirebaseStorage.instance
+              .ref('user_profiles/${authInstance.currentUser.uid}.jpg')
+              .getDownloadURL();
           await firestore
               .collection('users')
               .doc(authInstance.currentUser.uid)
               .set({
             'email': userData['email'],
             'username': userData['username'],
-            'profileimage':downloadURL,
-            'uid':authInstance.currentUser.uid
+            'profileimage': downloadURL,
+            'uid': authInstance.currentUser.uid
           });
           setState(() {
             isLoading = false;

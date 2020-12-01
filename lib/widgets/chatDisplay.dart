@@ -21,6 +21,7 @@ class _ChatDisplayState extends State<ChatDisplay> {
     return FutureBuilder(
         future: idGenerator(),
         builder: (context, snap) {
+          print("within the future builder");
           if (snap.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(),
@@ -35,6 +36,7 @@ class _ChatDisplayState extends State<ChatDisplay> {
                   .snapshots(),
               builder: (context, selfSnapshot) {
                 print(selfSnapshot.connectionState);
+                print("within the stream builder");
                 if (selfSnapshot.connectionState == ConnectionState.waiting) {
                   return Center(
                     child: CircularProgressIndicator(),
@@ -43,16 +45,27 @@ class _ChatDisplayState extends State<ChatDisplay> {
                     ConnectionState.active) {
                   return Expanded(
                       child: ListView.builder(
-                    itemBuilder: (context, index) {
-                      return ChatBubble(selfSnapshot.data.docs[index]['content'],selfSnapshot.data.docs[index]['sender'],selfSnapshot.data.docs[index]['userid']);
-                    },
-                    itemCount: selfSnapshot.data.docs.length,
-                  ));
+                              itemBuilder: (context, index) {
+                                return Container(
+                                   width: MediaQuery.of(context).size.width * 0.3,
+                                  child: ChatBubble(
+                                      selfSnapshot.data.docs[index]['content'],
+                                      selfSnapshot.data.docs[index]['sender'],
+                                      selfSnapshot.data.docs[index]['userid'],
+                                      widget.userData['imageurl']),
+                                );
+                              },
+                              itemCount: selfSnapshot.data.docs.length,
+                            ));
                 } else {
                   return Expanded(
                       child: ListView.builder(
                     itemBuilder: (context, index) {
-                      return ChatBubble(selfSnapshot.data.docs[index]['content'],selfSnapshot.data.docs[index]['sender'],selfSnapshot.data.docs[index]['userid']);
+                      return ChatBubble(
+                          selfSnapshot.data.docs[index]['content'],
+                          selfSnapshot.data.docs[index]['sender'],
+                          selfSnapshot.data.docs[index]['userid'],
+                          widget.userData['imageurl']);
                     },
                     itemCount: selfSnapshot.data.docs.length,
                   ));
@@ -63,20 +76,18 @@ class _ChatDisplayState extends State<ChatDisplay> {
         });
   }
 
-  Future<DocumentSnapshot> idGenerator() {
+  Future<DocumentSnapshot> idGenerator() async {
     final String docID1 = authInstance.currentUser.uid + widget.userData['uid'];
     final String docID2 = widget.userData['uid'] + authInstance.currentUser.uid;
-
-    firestore.collection('messages').doc(docID1).get().then((value) {
-      if (value.exists) {
-        validDoc = docID1;
-      }
-    });
-    firestore.collection('messages').doc(docID2).get().then((value) {
-      if (value.exists) {
-        validDoc = docID2;
-      }
-    });
-    return firestore.collection('messages').doc(docID2).get();
+    DocumentSnapshot document1 =
+        await firestore.collection('messages').doc(docID1).get();
+    if (document1.exists) {
+      validDoc = docID1;
+    }
+    document1 = await firestore.collection('messages').doc(docID2).get();
+    if (document1.exists) {
+      validDoc = docID2;
+    }
+    return firestore.collection('messages').doc(validDoc).get();
   }
 }

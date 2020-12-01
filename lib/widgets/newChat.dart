@@ -12,6 +12,7 @@ class NewChat extends StatefulWidget {
 
 class _NewChatState extends State<NewChat> {
   String validDoc;
+  bool isSent = true;
   final authInstance = FirebaseAuth.instance;
   final firestore = FirebaseFirestore.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
@@ -24,29 +25,37 @@ class _NewChatState extends State<NewChat> {
         children: [
           Expanded(
               child: TextField(
+                maxLines: 2,
+                textInputAction: TextInputAction.newline,
             controller: _newChatController,
-            decoration: InputDecoration(labelText: "Type a new message"),
+            decoration: InputDecoration(labelText: "Type a new message",),
           )),
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: () async {
-              String user;
-              final daata = await firestore
-                  .collection('users')
-                  .doc(authInstance.currentUser.uid)
-                  .get();
-              user = daata['username'];
-              Map<String, dynamic> data = {
-                'userid': authInstance.currentUser.uid,
-                'reciever': widget.recieverData['username'],
-                'msgType': 'text',
-                'content': _newChatController.text,
-                'createdAt': Timestamp.now(),
-                'sender': user
-              };
-              sendMessage(data);
-            },
-          )
+          isSent
+              ? IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: () async {
+                    setState(() {
+                      isSent = false;
+                      });
+                    String user;
+                    final daata = await firestore
+                        .collection('users')
+                        .doc(authInstance.currentUser.uid)
+                        .get();
+                    user = daata['username'];
+                    Map<String, dynamic> data = {
+                      'userid': authInstance.currentUser.uid,
+                      'reciever': widget.recieverData['username'],
+                      'msgType': 'text',
+                      'content': _newChatController.text,
+                      'createdAt': Timestamp.now(),
+                      'sender': user
+                    };
+                    sendMessage(data);
+                    _newChatController.clear();
+                  },
+                )
+              : CircularProgressIndicator()
         ],
       ),
     );
@@ -58,20 +67,25 @@ class _NewChatState extends State<NewChat> {
     final String docID2 =
         widget.recieverData['uid'] + authInstance.currentUser.uid;
 
-    firestore.collection('messages').doc(docID1).get().then((value) {
-      if (value.exists) {
+    DocumentSnapshot doc1 =
+        await firestore.collection('messages').doc(docID1).get();
+    if (doc1.exists) {
+      setState(() {
         validDoc = docID1;
-      }
-    });
-    firestore.collection('messages').doc(docID2).get().then((value) {
-      if (value.exists) {
-        validDoc = docID2;
-      }
-    });
-    print(validDoc);
-    if (validDoc == null) {
-      validDoc = docID1;
+      });
     }
+    doc1 = await firestore.collection('messages').doc(docID2).get();
+    if (doc1.exists) {
+      setState(() {
+        validDoc = docID2;
+      });
+    }
+    if (validDoc == null) {
+      setState(() {
+        validDoc = docID1;
+      });
+    }
+    
     final msgRef = await firestore
         .collection('messages')
         .doc(validDoc)
@@ -81,5 +95,8 @@ class _NewChatState extends State<NewChat> {
         .collection('messages')
         .doc(validDoc)
         .set({'chat': true});
+    setState(() {
+      isSent = true;
+    });
   }
 }

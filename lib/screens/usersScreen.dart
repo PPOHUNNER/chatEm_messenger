@@ -27,16 +27,17 @@ class _UserScreenState extends State<UserScreen> {
               SliverAppBar(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(95),
-                        bottomLeft: Radius.circular(20))),
+                        bottomRight: Radius.circular(95),)),
                 floating: true,
                 titleSpacing: 10,
-                centerTitle: true,
-                title: Text(
-                  "ChatEm",
-                  style: TextStyle(fontSize: 50),
+                title: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    "Welcome",
+                    style: TextStyle(fontSize: 50),
+                  ),
                 ),
-                expandedHeight: 150,
+                expandedHeight: 125,
                 actions: [
                   IconButton(
                       icon: Icon(Icons.arrow_forward_ios),
@@ -53,34 +54,39 @@ class _UserScreenState extends State<UserScreen> {
                 padding: const EdgeInsets.all(10),
                 sliver: SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
-                  return Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          Navigator.of(context).pushNamed('/chatScreen',
-                              arguments: {
-                                'username': userSnapshot.data.docs[index]
-                                    ['username'],
-                                    'uid':userSnapshot.data.docs[index]
-                                    ['uid']
-                              });
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              radius: 25,
-                              backgroundImage: NetworkImage(userSnapshot
-                                  .data.docs[index]['profileimage']),
+                  return Container(
+                    margin: EdgeInsets.only(top: 20),
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.of(context).pushNamed('/chatScreen',
+                                arguments: {
+                                  'username': userSnapshot.data.docs[index]
+                                      ['username'],
+                                      'uid':userSnapshot.data.docs[index]
+                                      ['uid'],
+                                      'imageurl':userSnapshot.data.docs[index]
+                                      ['profileimage']
+                                });
+                          },
+                          child: Container(
+                            padding:
+                                EdgeInsets.symmetric(vertical: 7, horizontal: 5),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                radius: 22,
+                                backgroundImage: NetworkImage(userSnapshot
+                                    .data.docs[index]['profileimage']),
+                              ),
+                              title:
+                                  Text(userSnapshot.data.docs[index]['username']),
                             ),
-                            title:
-                                Text(userSnapshot.data.docs[index]['username']),
                           ),
                         ),
-                      ),
-                      Divider()
-                    ],
+                        Divider()
+                      ],
+                    ),
                   );
                 }, childCount: userSnapshot.data.docs.length)),
               )
